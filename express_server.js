@@ -31,6 +31,6 @@ app.listen(PORT, () => {
 });
 
 app.get("/urls/:id", (req, res) => {
-  const templateVars = { id: req.params.id, longURL: '/urls/b2xVn2'/* What goes here? */ };
+  const templateVars = { id: req.params.id, longURL: req.params.longURL}; /* What goes here? */ 
   res.render("urls_show", templateVars);
 });
