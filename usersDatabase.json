@@ -1,0 +1,12 @@
+{
+    "userRandomID1": {
+        "id": "userRandomID1",
+        "email": "user1@example.com",
+        "password": "hashed_password_1"
+    },
+    "userRandomID2": {
+        "id": "userRandomID2",
+        "email": "user2@example.com",
+        "password": "hashed_password_2"
+    }
+}
