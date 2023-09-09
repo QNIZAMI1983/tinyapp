@@ -1,4 +1,3 @@
-
 const express = require("express");
 const app = express();
 const PORT = 8080; // Default port 8080
@@ -6,11 +5,14 @@ const PORT = 8080; // Default port 8080
 // Set the view engine to ejs
 app.set("view engine", "ejs");
 
-// Install and require the body-parser middleware
+// Install and require the necessary middleware
 const bodyParser = require("body-parser");
+const cookieParser = require("cookie-parser");
+const bcrypt = require("bcryptjs");
 
-// Tell the Express app to use body-parser as middleware
+// Tell the Express app to use middleware
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 // Function to generate a random alphanumeric string
 function generateRandomString() {
@@ -27,6 +29,40 @@ const urlDatabase = {
   b6UTxQ: { longURL: "https://www.tsn.ca", ID: "aJ48lW" },
   i3BoGr: { longURL: "https://www.google.ca", ID: "aJ48lW" }
 };
+
+// Connect users to the server
+const users = {
+  "aJ48lW": {
+    ID: "aJ48lW",
+    email: "qais@gmail.com",
+    password: "123456"
+  },
+  "user2RandomID": {
+    ID: "user2RandomID",
+    email: "jinab@yahoo.com",
+    password: "dishwasher-funk"
+  }
+};
+
+// Helper function to check if an email exists in users
+function emailExists(email) {
+  return Object.values(users).some((user) => user.email === email);
+}
+
+// Helper function to get a user by email
+function getUserByEmail(email) {
+  return Object.values(users).find((user) => user.email === email);
+}
+
+// Define a route handler for the root path ("/")
+app.get("/", (req, res) => {
+  // Redirect the user to the "/urls" page if logged in, or to "/login" if not logged in
+  if (req.cookies["user_id"]) {
+    res.redirect("/urls");
+  } else {
+    res.redirect("/login");
+  }
+});
 
 // GET /urls/new
 app.get("/urls/new", (req, res) => {
@@ -49,6 +85,14 @@ app.post("/urls", (req, res) => {
   res.redirect("/urls");
 });
 
+// GET /urls
+app.get("/urls", (req, res) => {
+  const templateVars = {
+    urls: urlDatabase,
+    user: users[req.cookies["user_id"]]
+  };
+  res.render("urls_index", templateVars);
+});
 
 // GET /register
 app.get("/register", (req, res) => {
