@@ -1,42 +1,17 @@
 const express = require("express");
 const app = express();
-const PORT = 8080;
+const PORT = 8080; // Default port 8080
 
-app.listen(PORT, () => {
-  console.log(`Tiny app listening on port ${PORT}!`);
-});
-
+// Set the view engine to ejs
 app.set("view engine", "ejs");
 
-const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
-};
+// Install and require the body-parser middleware
+const bodyParser = require("body-parser");
 
-app.use(express.urlencoded({ extended: true }));
+// Tell the Express app to use body-parser as middleware
+app.use(bodyParser.urlencoded({ extended: true }));
 
-// Route handler to handle POST requests to /urls
-app.post("/urls", (req, res) => {
-  // Generate a unique ID for the URL (you should implement generateRandomString)
-  const shortURL = generateRandomString(); // Implement this function to generate a unique string
-
-  // Get the long URL from the form data submitted in the POST request
-  const longURL = req.body.longURL; // Assuming the form field name is "longURL"
-
-  // Add the id-longURL pair to the urlDatabase
-  urlDatabase[shortURL] = longURL;
-
-  // Redirect the user to the /urls/:id page
-  res.redirect(`/urls/${shortURL}`);
-});
-
-
-app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase };
-  res.render("urls_index", templateVars);
-});
-
-// Function to generate a random alphanumeric string (replace with your implementation)
+// Function to generate a random alphanumeric string
 function generateRandomString() {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   let randomString = "";
@@ -46,19 +21,145 @@ function generateRandomString() {
   return randomString;
 }
 
+// Connect urlDatabase to the server
+const urlDatabase = {
+  b6UTxQ: { longURL: "https://www.tsn.ca", ID: "aJ48lW" },
+  i3BoGr: { longURL: "https://www.google.ca", ID: "aJ48lW" }
+};
 
-app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+// GET /urls from the urlDatabase
+app.get("/urls", (req, res) => {
+  const templateVars = {
+    urls: urlDatabase,
+    user: users[req.cookies["user_id"]]
+  };
+  res.render("urls_index", templateVars);
 });
 
-app.get("/urls/:id", (req, res) => {
-  const templateVars = { id: req.params.id, longURL: req.params.longURL }; /* What goes here? */
+// GET /urls/new
+app.get("/urls/new", (req, res) => {
+  const templateVars = {
+    user: users[req.cookies["user_id"]]
+  };
+  res.render("urls_new", templateVars);
+});
+
+// POST /urls - Add a new URL
+app.post("/urls", (req, res) => {
+  const shortURL = generateRandomString();
+  const longURL = req.body.longURL;
+  const ID = req.cookies["user_id"];
+
+  // Add the URL to your urlDatabase
+  urlDatabase[shortURL] = { longURL: longURL, ID: ID };
+
+  // Redirect the user to their list of URLs
+  res.redirect("/urls");
+});
+
+// GET /urls/:shortURL
+app.get("/urls/:shortURL", (req, res) => {
+  const templateVars = {
+    shortURL: req.params.shortURL,
+    longURL: urlDatabase[req.params.shortURL].longURL,
+    user: users[req.cookies["user_id"]]
+  };
   res.render("urls_show", templateVars);
 });
 
-app.post("/urls", (req, res) => {
-  console.log(req.body); // Log the POST request body to the console
-  res.send("Ok"); // Respond with 'Ok' (we will replace this)
+// POST /urls/:shortURL/delete - Delete a URL
+app.post("/urls/:shortURL/delete", (req, res) => {
+  const shortURL = req.params.shortURL;
+
+  // Delete the URL from your urlDatabase
+  delete urlDatabase[shortURL];
+
+  // Redirect the user to their list of URLs
+  res.redirect("/urls");
 });
 
+// POST /urls/:shortURL - Update a URL
+app.post("/urls/:shortURL", (req, res) => {
+  const shortURL = req.params.shortURL;
+  const updatedLongURL = req.body.longURL;
 
+  // Update the long URL in your urlDatabase
+  urlDatabase[shortURL].longURL = updatedLongURL;
+
+  // Redirect the user to their list of URLs
+  res.redirect("/urls");
+});
+
+// GET /register
+app.get("/register", (req, res) => {
+  res.render("urls_register");
+});
+
+// POST /register
+app.post("/register", (req, res) => {
+  const ID = generateRandomString();
+  const email = req.body.email;
+  const password = req.body.password;
+  const hashedPassword = bcrypt.hashSync(password, 10);
+
+  if (!email || !password) {
+    res.status(400).send("Email and password are required");
+    return;
+  }
+
+  if (emailExists(email)) {
+    res.status(400).send("Email already exists");
+    return;
+  }
+
+  users[ID] = { ID, email, hashedPassword };
+  res.cookie("user_id", ID);
+  res.redirect("/urls");
+});
+
+// GET /login
+app.get("/login", (req, res) => {
+  res.render("urls_login");
+});
+
+// POST /login
+app.post("/login", (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+
+  if (!email || !password) {
+    res.status(400).send("Email and password are required");
+    return;
+  }
+
+  const user = getUserByEmail(email);
+
+  if (!user || !bcrypt.compareSync(password, user.hashedPassword)) {
+    res.status(403).send("Incorrect email or password");
+    return;
+  }
+
+  res.cookie("user_id", user.ID);
+  res.redirect("/urls");
+});
+
+// POST /logout
+app.post("/logout", (req, res) => {
+  res.clearCookie("user_id");
+  res.redirect("/urls");
+});
+
+// Helper function to check if an email exists in users
+function emailExists(email) {
+  return Object.values(users).some((user) => user.email === email);
+}
+
+// Helper function to get a user by email
+function getUserByEmail(email) {
+  return Object.values(users).find((user) => user.email === email);
+}
+
+// Start the server
+app.listen(PORT, () => {
+  console.log(`Tiny app listening on port ${PORT}!`);
+});

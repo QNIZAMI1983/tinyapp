@@ -19,29 +19,20 @@
   <body>
     <% include('partials/_header') %>
     <main style="margin: 1em;">
-      <h3>My URLs</h3>
-      <table class="table">
-        <thead>
-          <tr>
-            <th scope="col">Short URL ID</th>
-            <th scope="col">Long URL</th>
-            <th scope="col">Actions</th> <!-- Add a new column for actions -->
-          </tr>
-        </thead>
-        <tbody>
-          <% for (let id in urls) { %>
-            <tr>
-              <td><%= id %></td>
-              <td><%= urls[id].longURL %></td> <!-- Use urls[id].longURL to access the long URL -->
-              <td>
-                <form action="/urls/<%= id %>" method="POST">
-                  <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                </form>
-              </td>
-            </tr>
-          <% } %>
-        </tbody>
-      </table>
+      <h3>Edit URL</h3>
+      <form action="/urls/<%= shortURL %>" method="POST">
+        <div class="form-group">
+          <label for="longURL">Long URL:</label>
+          <input
+            type="text"
+            class="form-control"
+            id="longURL"
+            name="longURL"
+            value="<%= longURL %>"
+          />
+        </div>
+        <button type="submit" class="btn btn-primary">Save</button>
+      </form>
     </main>
     <!-- Bootstrap JS -->
     <script
