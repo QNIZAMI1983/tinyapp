@@ -1,21 +1,25 @@
 {
   "name": "tinyapp",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "tinyapp",
+  "main": "express_server.js",
   "scripts": {
-    "start": "./node_modules/.bin/nodemon -L express_server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "./node_modules/mocha/bin/mocha",
+    "start": "./node_modules/.bin/nodemon -L express_server.js"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["tinyapp"],
+  "author": "Qais Nizami email = qais.nizami@gmail.com",
   "license": "ISC",
+  "homepage": "https://ghttps://github.com/QNIZAMI1983/tinyapp/README.md",
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.2",
+    "chai": "^4.3.8",
     "cookie-parser": "^1.4.6",
     "ejs": "^3.1.9",
+    "eslint": "^8.49.0",
     "express": "^4.18.2",
+    "mocha": "^10.2.0",
     "morgan": "^1.10.0"
   },
   "devDependencies": {
