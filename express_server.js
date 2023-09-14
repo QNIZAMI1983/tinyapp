@@ -1,7 +1,7 @@
 const express = require("express");
 const morgan = require("morgan");
 const cookieSession = require("cookie-session");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 
 // External helper function
 const {
